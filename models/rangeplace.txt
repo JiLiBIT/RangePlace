@@ -1,0 +1,16 @@
+[MODEL]
+model= RangePlace
+dim=64,128,128,128
+depths=2,2,2,2
+num_heads=[1,2,4,4]
+num_top_down=2
+conv0_kernel_size=5
+feature_size=256
+pooling=gem
+
+
+coordinates=rangeimage
+quantization_step=0.01
+norm_layer=partial(nn.LayerNorm, eps=1e-6)
+normalize_embeddings=False
+

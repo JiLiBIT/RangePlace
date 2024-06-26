@@ -69,8 +69,6 @@ python train.py --config ../config/config_kitti.txt --model_config ../models/ran
 
 
 
-
-
 ## Testing
 
 coming soon ...
@@ -78,3 +76,12 @@ coming soon ...
 ## License
 Our code is released under the MIT License (see LICENSE file for details).
 
+## Acknowledgement
+
+We have intensively borrowed code from the following repositories. Many thanks to the authors for sharing their code.
+
+[OverlapTransformer](https://github.com/haomo-ai/OverlapTransformer)
+
+[MinkLoc3Dv2](https://github.com/jac99/MinkLoc3Dv2)
+
+[SwinTransformer](https://github.com/microsoft/Swin-Transformer)
