@@ -1,0 +1,26 @@
+[DEFAULT]
+dataset_folder = /home/liji/HIOT/MinkLoc3Dv2-main
+
+[TRAIN]
+num_workers = 2
+batch_size = 2048
+batch_split_size = 16
+val_batch_size = 16
+
+scheduler = CosineAnnealingLR
+lr = 1e-3
+min_lr = 1e-6
+warmup_epochs = 5
+warmup_lr_init = 5e-5
+epochs = 100
+optimizer = AdamW
+aug_mode = 2
+set_aug_mode = 2
+weight_decay = 5e-2
+scheduler_milestones = 50, 80
+loss = TruncatedSmoothAP
+tau1 = 0.01
+positives_per_query = 4
+
+train_file = training_queries_nclt.pickle
+val_file = test_queries_nclt.pickle
