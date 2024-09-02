@@ -24,7 +24,7 @@ Before the network training or evaluation, run the below code to generate pickle
 
 ```
 # Generate training tuples for the KITTI Dataset
-cd generating_queries/ 
+cd datasets/pointnetvlad/ 
 python generate_training_tuples_kitti.py --dataset_root <dataset_root_path>
 
 # Generate evaluation tuples
