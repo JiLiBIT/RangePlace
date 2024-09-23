@@ -4,7 +4,7 @@ The code for our paper:
 
 **RangePlace: A Hierarchical Range Image Transformer for LiDAR-based Place Recognition** 
 
-# [Paper](https://ieeexplore.ieee.org/document/10634124)
+## [Paper](https://ieeexplore.ieee.org/document/10634124)
 
 Developed by [Ji Li](https://jilibit.github.io/).
 
