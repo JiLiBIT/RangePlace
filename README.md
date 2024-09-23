@@ -12,7 +12,9 @@ Beijing Institute of Technology
 
 ## Dependencies
 
-coming soon ...
+```
+conda env create -f environment.yaml -n rangeplace
+```
 
 ## Datasets
 
@@ -71,7 +73,12 @@ python train.py --config ../config/config_kitti.txt --model_config ../models/ran
 
 ## Testing
 
-coming soon ...
+Take KITTI dataset for example, run:
+```
+cd eval
+python pnv_evaluate.py --config ../config/config_kitti.txt --model_config ../models/rangeplace.txt --weights <path_to_your_weight>
+```
+
 
 ## License
 Our code is released under the MIT License (see LICENSE file for details).
