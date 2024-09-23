@@ -4,7 +4,9 @@ The code for our paper:
 
 **RangePlace: A Hierarchical Range Image Transformer for LiDAR-based Place Recognition**
 
-Developed by [Ji Li](https://github.com/JiLiBIT).
+Developed by [Ji Li](https://jilibit.github.io/).
+
+Thank you very much [Zhiwei Li] for reconstructing this projection! 
 
 Beijing Institute of Technology
 
@@ -19,8 +21,6 @@ conda env create -f environment.yaml -n rangeplace
 ## Datasets
 
 ### KITTI Odometry Dataset
-
-### Ford Campus Dataset
 
 Before the network training or evaluation, run the below code to generate pickles with positive and negative point clouds for each anchor point cloud. 
 
@@ -76,7 +76,7 @@ python train.py --config ../config/config_kitti.txt --model_config ../models/ran
 Take KITTI dataset for example, run:
 ```
 cd eval
-python pnv_evaluate.py --config ../config/config_kitti.txt --model_config ../models/rangeplace.txt --weights <path_to_your_weight>
+python pnv_evaluate.py --config ../config/config_kitti.txt --model_config ../models/rangeplace.txt --weights <path_to_your_weights>
 ```
 
 
