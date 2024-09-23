@@ -6,7 +6,7 @@ The code for our paper:
 
 Developed by [Ji Li](https://jilibit.github.io/).
 
-Thank you very much [Zhiwei Li] for reconstructing this projection! 
+Thank you very much [Zhiwei Li] for reconstructing this project! 
 
 Beijing Institute of Technology
 
