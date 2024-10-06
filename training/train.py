@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train MinkLoc3Dv2 model')
     parser.add_argument('--config', type=str, required=True, help='Path to configuration file')
     parser.add_argument('--model_config', type=str, required=True, help='Path to the model-specific configuration file')
+    parser.add_argument('--resume', type=str, help='Path to the pretrain weights')
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.set_defaults(debug=False)
 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     print('Model config path: {}'.format(args.model_config))
     print('Debug mode: {}'.format(args.debug))
 
-    params = TrainingParams(args.config, args.model_config, debug=args.debug)
+    params = TrainingParams(args.config, args.model_config, args.resume, debug=args.debug)
     params.print()
 
     if args.debug:

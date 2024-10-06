@@ -151,6 +151,12 @@ def do_train(params: TrainingParams):
     print('Model name: {}'.format(model_name))
     weights_path = create_weights_folder()
 
+    if params.resume is not None:
+        print('Load pretrained model weights from path: {}'.format(params.resume))
+        checkpoint = torch.load(params.resume)
+        saved_state_dict = checkpoint['state_dict']
+        model.load_state_dict(saved_state_dict)
+
     model_pathname = os.path.join(weights_path, model_name)
     if hasattr(model, 'print_info'):
         model.print_info()
