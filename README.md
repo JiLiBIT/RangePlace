@@ -67,7 +67,7 @@ To train the network, run:
 
 ```
 cd training
-python train.py --config ../config/config_kitti.txt --model_config ../models/rangplace.txt
+python train.py --config ../config/config_kitti.txt --model_config ../models/rangplace.txt --resume <path_to_your_pretrained_weights>
 ```
 
 
