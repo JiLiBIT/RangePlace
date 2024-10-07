@@ -1,0 +1,9 @@
+data_root_folder/
+__pycache__/
+**/__pycache__/
+weights/OT
+weights/RangePlace
+loopinfo.txt
+*.pickle
+wandb/
+**/wandb/

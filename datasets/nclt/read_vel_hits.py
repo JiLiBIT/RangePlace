@@ -1,4 +1,4 @@
-# !/usr/bin/python
+# !/usr/bin/python3
 #
 # Example code to go through the velodyne_hits.bin
 # file and read timestamps, number of hits, and the
@@ -13,9 +13,10 @@
 import sys
 import struct
 
+
 def convert(x_s, y_s, z_s):
 
-    scaling = 0.005 # 5 mm
+    scaling = 0.005  # 5 mm
     offset = -100.0
 
     x = x_s * scaling + offset
@@ -24,67 +25,74 @@ def convert(x_s, y_s, z_s):
 
     return x, y, z
 
+
 def verify_magic(s):
 
     magic = 44444
 
-    m = struct.unpack('<HHHH', s)
+    m = struct.unpack("<HHHH", s)  # 以小端在前的方式解四个无符号整形数字
 
-    return len(m)>=4 and m[0] == magic and m[1] == magic and m[2] == magic and m[3] == magic
+    return (
+        len(m) >= 4
+        and m[0] == magic
+        and m[1] == magic
+        and m[2] == magic
+        and m[3] == magic
+    )
+
 
 def main(args):
 
     if len(sys.argv) < 2:
-        print "Please specifiy input bin file"
+        print("Please specify input bin file")
         return 1
 
-    f_bin = open(sys.argv[1], "r")
+    with open(args[1], "rb") as f_bin:
+        total_hits = 0
+        first_utime = -1
+        last_utime = -1
 
-    total_hits = 0
-    first_utime = -1
-    last_utime = -1
+        while True:
 
-    while True:
+            magic = f_bin.read(8)
+            if magic == "":  # eof
+                break
 
-        magic = f_bin.read(8)
-        if magic == '': # eof
-            break
+            if not verify_magic(magic):
+                print("Could not verify magic")
+                continue
 
-        if not verify_magic(magic):
-            print "Could not verify magic"
+            num_hits = struct.unpack("<I", f_bin.read(4))[0]
+            utime = struct.unpack("<Q", f_bin.read(8))[0]
 
-        num_hits = struct.unpack('<I', f_bin.read(4))[0]
-        utime = struct.unpack('<Q', f_bin.read(8))[0]
+            padding = f_bin.read(4)  # 数据存储对齐要求
 
-        padding = f_bin.read(4) # padding
+            print("Have %d hits for utime %d" % (num_hits, utime))
 
-        print "Have %d hits for utime %ld" % (num_hits, utime)
+            total_hits += num_hits
+            if first_utime == -1:
+                first_utime = utime
+            last_utime = utime
 
-        total_hits += num_hits
-        if first_utime == -1:
-            first_utime = utime
-        last_utime = utime
+            for i in range(num_hits):
 
-        for i in range(num_hits):
+                x = struct.unpack("<H", f_bin.read(2))[0]
+                y = struct.unpack("<H", f_bin.read(2))[0]
+                z = struct.unpack("<H", f_bin.read(2))[0]
+                i = struct.unpack("B", f_bin.read(1))[0]
+                l = struct.unpack("B", f_bin.read(1))[0]
 
-            x = struct.unpack('<H', f_bin.read(2))[0]
-            y = struct.unpack('<H', f_bin.read(2))[0]
-            z = struct.unpack('<H', f_bin.read(2))[0]
-            i = struct.unpack('B', f_bin.read(1))[0]
-            l = struct.unpack('B', f_bin.read(1))[0]
+                x, y, z = convert(x, y, z)
+                s = "%5.3f, %5.3f, %5.3f, %d, %d" % (x, y, z, i, l)
 
-            x, y, z = convert(x, y, z)
-            s = "%5.3f, %5.3f, %5.3f, %d, %d" % (x, y, z, i, l)
+                print(s)
 
-            print s
+            input("Press enter to continue...")
 
-        raw_input("Press enter to continue...")
-
-    f_bin.close()
-
-    print "Read %d total hits from %ld to %ld" % (total_hits, first_utime, last_utime)
+    print("Read %d total hits from %d to %d" % (total_hits, first_utime, last_utime))
 
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main(sys.argv))

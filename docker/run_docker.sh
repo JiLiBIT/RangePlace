@@ -1,0 +1,1 @@
+sudo docker run -it -v [path_file]:/home/RangePlace --device=/dev/dri --group-add video --volume=/tmp/.X11-unix:/tmp/.X11-unix  --env="DISPLAY=$DISPLAY"  --shm-size=12g -e GDK_SCALE -e GDK_DPI_SCALE --privileged=true --network=host -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all --env="QT_X11_NO_MITSHM=1" --gpus="all" --name=RangePlace slamenv:v4.0 /bin/bash

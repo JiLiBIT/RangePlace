@@ -11,14 +11,18 @@ class TrainSetTransform:
     def __init__(self, aug_mode):
         self.aug_mode = aug_mode
         if self.aug_mode == 1:
-            t = [RandomRotation(max_theta=5, axis=np.array([0, 0, 1])),
-                 RandomFlip([0.25, 0.25, 0.])]
+            t = [
+                RandomRotation(max_theta=5, axis=np.array([0, 0, 1])),
+                RandomFlip([0.25, 0.25, 0.0]),
+            ]
             self.transform = transforms.Compose(t)
         elif self.aug_mode == 2:
             print("RangeAug2")
-            t = [RangeShift((-0.5,0.5)),RangeTranslation(max_delta=0.05),
+            t = [
+                RangeShift((-0.5, 0.5)),
+                RangeTranslation(max_delta=0.05),
                 #  RangeMirror(probability=0.25)
-                 ]
+            ]
             self.transform = transforms.Compose(t)
         else:
             # raise NotImplementedError('Unknown aug_mode: {}'.format(self.aug_mode))
@@ -34,7 +38,7 @@ class RandomFlip:
     def __init__(self, p):
         # p = [p_x, p_y, p_z] probability of flipping each axis
         assert len(p) == 3
-        assert 0 < sum(p) <= 1, 'sum(p) must be in (0, 1] range, is: {}'.format(sum(p))
+        assert 0 < sum(p) <= 1, "sum(p) must be in (0, 1] range, is: {}".format(sum(p))
         self.p = p
         self.p_cum_sum = np.cumsum(p)
 
@@ -56,8 +60,8 @@ class RandomFlip:
 class RandomRotation:
     def __init__(self, axis=None, max_theta=180, max_theta2=None):
         self.axis = axis
-        self.max_theta = max_theta      # Rotation around axis
-        self.max_theta2 = max_theta2    # Smaller rotation in random direction
+        self.max_theta = max_theta  # Rotation around axis
+        self.max_theta2 = max_theta2  # Smaller rotation in random direction
 
     def _M(self, axis, theta):
         return expm(np.cross(np.eye(3), axis / norm(axis) * theta)).astype(np.float32)
@@ -67,11 +71,16 @@ class RandomRotation:
             axis = self.axis
         else:
             axis = np.random.rand(3) - 0.5
-        R = self._M(axis, (np.pi * self.max_theta / 180.) * 2. * (np.random.rand(1) - 0.5))
+        R = self._M(
+            axis, (np.pi * self.max_theta / 180.0) * 2.0 * (np.random.rand(1) - 0.5)
+        )
         if self.max_theta2 is None:
             coords = coords @ R
         else:
-            R_n = self._M(np.random.rand(3) - 0.5, (np.pi * self.max_theta2 / 180.) * 2. * (np.random.rand(1) - 0.5))
+            R_n = self._M(
+                np.random.rand(3) - 0.5,
+                (np.pi * self.max_theta2 / 180.0) * 2.0 * (np.random.rand(1) - 0.5),
+            )
             coords = coords @ R @ R_n
 
         return coords
@@ -87,29 +96,31 @@ class RandomTranslation:
 
 
 class JitterPoints:
-    def __init__(self, sigma=0.01, clip=None, p=1.):
-        assert 0 < p <= 1.
-        assert sigma > 0.
+    def __init__(self, sigma=0.01, clip=None, p=1.0):
+        assert 0 < p <= 1.0
+        assert sigma > 0.0
 
         self.sigma = sigma
         self.clip = clip
         self.p = p
 
     def __call__(self, e):
-        """ Randomly jitter points. jittering is per point.
-            Input:
-              BxNx3 array, original batch of point clouds
-            Return:
-              BxNx3 array, jittered batch of point clouds
+        """Randomly jitter points. jittering is per point.
+        Input:
+          BxNx3 array, original batch of point clouds
+        Return:
+          BxNx3 array, jittered batch of point clouds
         """
 
         sample_shape = (e.shape[0],)
-        if self.p < 1.:
+        if self.p < 1.0:
             # Create a mask for points to jitter
-            m = torch.distributions.categorical.Categorical(probs=torch.tensor([1 - self.p, self.p]))
+            m = torch.distributions.categorical.Categorical(
+                probs=torch.tensor([1 - self.p, self.p])
+            )
             mask = m.sample(sample_shape=sample_shape)
         else:
-            mask = torch.ones(sample_shape, dtype=torch.int64 )
+            mask = torch.ones(sample_shape, dtype=torch.int64)
 
         mask = mask == 1
         jitter = self.sigma * torch.randn_like(e[mask])
@@ -142,7 +153,9 @@ class RemoveRandomPoints:
             # Randomly select removal ratio
             r = random.uniform(self.r_min, self.r_max)
 
-        mask = np.random.choice(range(n), size=int(n*r), replace=False)   # select elements to remove
+        mask = np.random.choice(
+            range(n), size=int(n * r), replace=False
+        )  # select elements to remove
         e[mask] = torch.zeros_like(e[mask])
         return e
 
@@ -153,6 +166,7 @@ class RemoveRandomBlock:
     Erases fronto-parallel cuboid.
     Instead of erasing we set coords of removed points to (0, 0, 0) to retain the same number of points
     """
+
     def __init__(self, p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3)):
         self.p = p
         self.scale = scale
@@ -178,11 +192,15 @@ class RemoveRandomBlock:
 
     def __call__(self, coords):
         if random.random() < self.p:
-            x, y, w, h = self.get_params(coords)     # Fronto-parallel cuboid to remove
-            mask = (x < coords[..., 0]) & (coords[..., 0] < x+w) & (y < coords[..., 1]) & (coords[..., 1] < y+h)
+            x, y, w, h = self.get_params(coords)  # Fronto-parallel cuboid to remove
+            mask = (
+                (x < coords[..., 0])
+                & (coords[..., 0] < x + w)
+                & (y < coords[..., 1])
+                & (coords[..., 1] < y + h)
+            )
             coords[mask] = torch.zeros_like(coords[mask])
         return coords
-
 
 
 class RangeShift:
@@ -190,21 +208,24 @@ class RangeShift:
         self.r = r
 
     def __call__(self, e):
-        """ Randomly jitter points. jittering is per point.
-            Input:
-              BxCxHxW array, original batch
-            Return:
-              BxCxHxW array, jittered batch
+        """Randomly jitter points. jittering is per point.
+        Input:
+          BxCxHxW array, original batch
+        Return:
+          BxCxHxW array, jittered batch
         """
 
         channels, height, width = e.shape
         W = width
         kshift = random.randint(self.r[0] * W, self.r[1] * W)
         shifted_range_images_tensor = e.clone()
-        shifted_range_images_tensor = torch.roll(shifted_range_images_tensor, shifts=kshift, dims=-1)
-        
+        shifted_range_images_tensor = torch.roll(
+            shifted_range_images_tensor, shifts=kshift, dims=-1
+        )
+
         return shifted_range_images_tensor
-    
+
+
 class RangeTranslation:
     def __init__(self, max_delta=0.05):
         self.max_delta = max_delta
@@ -213,7 +234,7 @@ class RangeTranslation:
         channels, height, width = e.shape
         trans = self.max_delta * np.random.randn(channels, height, width)
         return e + trans.astype(np.float32)
-    
+
 
 class RangeMirror:
     def __init__(self, probability=0.25):

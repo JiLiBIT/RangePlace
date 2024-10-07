@@ -3,7 +3,6 @@ import pickle
 import argparse
 import numpy as np
 import pandas as pd
-from itertools import chain
 from sklearn.neighbors import KDTree
 
 
@@ -13,7 +12,6 @@ def format_timestamp(value):
 
 def output_to_file(output, base_path, filename):
     file_path = os.path.join(base_path, filename)
-    # print(output)
     with open(file_path, "wb") as handle:
         pickle.dump(output, handle, protocol=pickle.HIGHEST_PROTOCOL)
     print("Done ", filename)
@@ -29,25 +27,33 @@ def construct_query_and_database_sets(
     query_frames,
     output_name,
 ):
+    # 初始化数据
     database_trees = []
     test_trees = []
+
+    # 遍历文件夹
     for folder in folders:
         print(folder)
+
+        # 构建 pd ,读取 csv
         df_database = pd.DataFrame(columns=["file", "northing", "easting"])
         df_test = pd.DataFrame(columns=["file", "northing", "easting"])
 
         df_locations = pd.read_csv(
             os.path.join(base_path + runs_folder + folder + "/" + filename), sep=","
         )
-        df_locations["timestamp"] = df_locations["timestamp"]
-        # df_locations['timestamp']=runs_folder+folder+pointcloud_fols+df_locations['timestamp'].astype(str)+'.bin'
-        # df_locations=df_locations.rename(columns={'timestamp':'file'})
+        df_locations["timestamp"] = df_locations["timestamp"].apply(format_timestamp)
+
+        # 划分测试集和训练集
         for index, row in df_locations.iterrows():
-            # entire business district is in the test set
-            if index in query_frames[folder]:
-                df_test = df_test.append(row, ignore_index=True)
             if index in db_frames[folder]:
-                df_database = df_database.append(row, ignore_index=True)
+                df_test = pd.concat([df_test, row.to_frame().T], ignore_index=True)
+            elif index in query_frames[folder]:
+                df_database = pd.concat(
+                    [df_database, row.to_frame().T], ignore_index=True
+                )
+
+        # 创建 KDTree
         database_tree = KDTree(df_database[["northing", "easting"]])
         test_tree = KDTree(df_test[["northing", "easting"]])
         database_trees.append(database_tree)
@@ -55,13 +61,15 @@ def construct_query_and_database_sets(
 
     test_sets = []
     database_sets = []
+
+    # 遍历文件夹，读取深度图
     for folder in folders:
         database = {}
         test = {}
         df_locations = pd.read_csv(
             os.path.join(base_path + runs_folder + folder + "/" + filename), sep=","
         )
-        df_locations["timestamp"] = df_locations["timestamp"]
+        df_locations["timestamp"] = df_locations["timestamp"].apply(format_timestamp)
         df_locations["timestamp"] = (
             runs_folder
             + folder
@@ -96,11 +104,10 @@ def construct_query_and_database_sets(
                 coor = np.array(
                     [[test_sets[j][key]["northing"], test_sets[j][key]["easting"]]]
                 )
-                index = tree.query_radius(coor, r=5)
+                index = tree.query_radius(coor, r=1.5)
                 # indices of the positive matches in database i of each query (key) in test set j
                 test_sets[j][key][i] = index[0].tolist()
-                if len(test_sets[j][key][i]) > 0:
-                    print("key", key, "test_sets[j][key][i] ", test_sets[j][key][i])
+                print("test_sets[j][key][i] ", test_sets[j][key][i])
                 # print("key",key)
 
     output_to_file(
@@ -127,25 +134,24 @@ if __name__ == "__main__":
     ), f"Cannot access dataset root folder: {args.dataset_root}"
     base_path = args.dataset_root
 
-    # For Oxford
+    # For Kitti
     folders = []
-    runs_folder = "/ford/"
+    runs_folder = "/data_root_folder/"
     all_folders = sorted(os.listdir(os.path.join(base_path + runs_folder)))
-    # index_list = [0,5,6]
-    index_list = [1]
+    index_list = [1, 3]
 
     print(len(index_list))
     for index in index_list:
         folders.append(all_folders[index])
-    # db_frames = {'00': range(0,3000) ,'02': range(0,3400) '05': range(0,1000), '06': range(0,600)}
-    # query_frames = {'00': range(3200, 4541),'02': range(3600,4661)'05': range(1200,2761), '06': range(800,1101)}
 
-    # db_frames = {'01': range(450,2450)}
-    # query_frames = {'01': list(chain(range(75, 400),range(2500, 2672)))}
-    # db_frames = {'01': range(75,1500)}
-    # query_frames = {'01': range(1700, 2672)}
-    db_frames = {"02": range(1, 2800)}
-    query_frames = {"02": range(3000, 6103)}
+    db_frames = {
+        "01": range(0, 100),
+        "03": range(0, 100),
+    }
+    query_frames = {
+        "01": range(101, 16346),
+        "03": range(101, 2299),
+    }
 
     print(folders)
     construct_query_and_database_sets(
@@ -156,5 +162,5 @@ if __name__ == "__main__":
         "pointcloud_locations.csv",
         db_frames,
         query_frames,
-        "ford",
+        "kitti",
     )

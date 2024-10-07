@@ -1,5 +1,5 @@
 [DEFAULT]
-dataset_folder = /home/liji/HIOT/MinkLoc3Dv2-main
+dataset_folder = /home/RangePlace
 
 [TRAIN]
 num_workers = 2

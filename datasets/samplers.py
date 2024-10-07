@@ -22,7 +22,7 @@ class ListDict(object):
         if item in self.item_to_position:
             return
         self.items.append(item)
-        self.item_to_position[item] = len(self.items)-1
+        self.item_to_position[item] = len(self.items) - 1
 
     def remove(self, item):
         position = self.item_to_position.pop(item)
@@ -48,11 +48,21 @@ class BatchSampler(Sampler):
     # Sampler returning list of indices to form a mini-batch
     # Samples elements in groups consisting of k=2 similar elements (positives)
     # Batch has the following structure: item1_1, ..., item1_k, item2_1, ... item2_k, itemn_1, ..., itemn_k
-    def __init__(self, dataset: TrainingDataset, batch_size: int, batch_size_limit: int = None,
-                 batch_expansion_rate: float = None, max_batches: int = None):
+    def __init__(
+        self,
+        dataset: TrainingDataset,
+        batch_size: int,
+        batch_size_limit: int = None,
+        batch_expansion_rate: float = None,
+        max_batches: int = None,
+    ):
         if batch_expansion_rate is not None:
-            assert batch_expansion_rate > 1., 'batch_expansion_rate must be greater than 1'
-            assert batch_size <= batch_size_limit, 'batch_size_limit must be greater or equal to batch_size'
+            assert (
+                batch_expansion_rate > 1.0
+            ), "batch_expansion_rate must be greater than 1"
+            assert (
+                batch_size <= batch_size_limit
+            ), "batch_size_limit must be greater or equal to batch_size"
 
         self.batch_size = batch_size
         self.batch_size_limit = batch_size_limit
@@ -62,10 +72,16 @@ class BatchSampler(Sampler):
         self.k = 2  # Number of positive examples per group must be 2
         if self.batch_size < 2 * self.k:
             self.batch_size = 2 * self.k
-            print('WARNING: Batch too small. Batch size increased to {}.'.format(self.batch_size))
+            print(
+                "WARNING: Batch too small. Batch size increased to {}.".format(
+                    self.batch_size
+                )
+            )
 
-        self.batch_idx = []     # Index of elements in each batch (re-generated every epoch)
-        self.elems_ndx = list(self.dataset.queries)    # List of point cloud indexes
+        self.batch_idx = (
+            []
+        )  # Index of elements in each batch (re-generated every epoch)
+        self.elems_ndx = list(self.dataset.queries)  # List of point cloud indexes
 
     def __iter__(self):
         # Re-generate batches every epoch
@@ -78,7 +94,7 @@ class BatchSampler(Sampler):
 
     def expand_batch(self):
         if self.batch_expansion_rate is None:
-            print('WARNING: batch_expansion_rate is None')
+            print("WARNING: batch_expansion_rate is None")
             return
 
         if self.batch_size >= self.batch_size_limit:
@@ -87,7 +103,11 @@ class BatchSampler(Sampler):
         old_batch_size = self.batch_size
         self.batch_size = int(self.batch_size * self.batch_expansion_rate)
         self.batch_size = min(self.batch_size, self.batch_size_limit)
-        print('=> Batch size increased from: {} to {}'.format(old_batch_size, self.batch_size))
+        print(
+            "=> Batch size increased from: {} to {}".format(
+                old_batch_size, self.batch_size
+            )
+        )
 
     def generate_batches(self):
         # Generate training/evaluation batches.
@@ -97,19 +117,23 @@ class BatchSampler(Sampler):
         unused_elements_ndx = ListDict(self.elems_ndx)
         current_batch = []
 
-        assert self.k == 2, 'sampler can sample only k=2 elements from the same class'
+        assert self.k == 2, "sampler can sample only k=2 elements from the same class"
 
         while True:
             if len(current_batch) >= self.batch_size or len(unused_elements_ndx) == 0:
                 # Flush out batch, when it has a desired size, or a smaller batch, when there's no more
                 # elements to process
-                if len(current_batch) >= 2*self.k:
+                if len(current_batch) >= 2 * self.k:
                     # Ensure there're at least two groups of similar elements, otherwise, it would not be possible
                     # to find negative examples in the batch
-                    assert len(current_batch) % self.k == 0, 'Incorrect bach size: {}'.format(len(current_batch))
+                    assert (
+                        len(current_batch) % self.k == 0
+                    ), "Incorrect bach size: {}".format(len(current_batch))
                     self.batch_idx.append(current_batch)
                     current_batch = []
-                    if (self.max_batches is not None) and (len(self.batch_idx) >= self.max_batches):
+                    if (self.max_batches is not None) and (
+                        len(self.batch_idx) >= self.max_batches
+                    ):
                         break
                 if len(unused_elements_ndx) == 0:
                     break
@@ -134,5 +158,6 @@ class BatchSampler(Sampler):
             current_batch += [selected_element, second_positive]
 
         for batch in self.batch_idx:
-            assert len(batch) % self.k == 0, 'Incorrect bach size: {}'.format(len(batch))
-
+            assert len(batch) % self.k == 0, "Incorrect bach size: {}".format(
+                len(batch)
+            )

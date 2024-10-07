@@ -16,9 +16,25 @@ Beijing Institute of Technology
 
 ## Dependencies
 
+Code was tested using Python 3.8 with PyTorch 1.11.0 and MinkowskiEngine on Ubuntu 20.04 with CUDA 11.3.
+
+- The following Python packages are required and can be found in the `docker/requirements_all.txt` file.
+
+- The above code adds a `docker` folder, which provides a tested `Dockerfile` along with the `run_docker.sh` and `build_docker.sh` scripts. You can use `build_docker.sh` to build the related image, and use `run_docker.sh` to create the relevant container. You will need to modify the `[path_file]` in `run_docker.sh` to the folder you want to sync.
+
+- Modify the `PYTHONPATH` environment variable to include absolute path to the project root folder: 
+
+```bash
+export PYTHONPATH=$PYTHONPATH:/home/RangePlace
 ```
-conda env create -f environment.yaml -n rangeplace
+
+- The above statement has already been set in the Dockerfile. If your path is different from the specified one, you need to modify the Dockerfile in advance or add the following statement to `~/.bashrc`.
+
+```bash
+export PYTHONPATH=$PYTHONPATH:<file_path>
 ```
+
+
 
 ## Datasets
 
@@ -38,8 +54,24 @@ python generate_test_ford.py --dataset_root <dataset_root_path>
 ```
 
 `<dataset_root_path>` is a path to dataset root folder, e.g. `/data/kitti_datasets/`.
-Before running the code, ensure you have read/write rights to `<dataset_root_path>`, as training and evaluation pickles
-are saved there. 
+Before running the code, ensure you have read/write rights to `<dataset_root_path>`, as training and evaluation pickles are saved there. 
+
+### Custom Datasets 
+
+`rosbag_convert` provides a Python script to convert raw LiDAR data and odometry information into the Dataset Structure required for training
+
+#### Generate training files
+
+Before the network training or evaluation, run the below code to generate pickles with positive and negative point clouds for each anchor point cloud. 
+
+```
+# Generate training tuples for the KITTI Dataset
+cd datasets/rosbag/ 
+python generate_training_tuples_selfbag.py --dataset_root <dataset_root_path>
+
+# Generate evaluation tuples
+python generate_test_selfbag.py --dataset_root <dataset_root_path>
+```
 
 
 
@@ -67,7 +99,7 @@ To train the network, run:
 
 ```
 cd training
-python train.py --config ../config/config_kitti.txt --model_config ../models/rangplace.txt --resume <path_to_your_pretrained_weights>
+python train.py --config ../config/config_kitti.txt --model_config ../models/rangeplace.txt --resume <path_to_your_pretrained_weights>
 ```
 
 

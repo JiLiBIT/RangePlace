@@ -1,0 +1,7 @@
+config: /home/RangePlace/config/config_kitti.txt
+model_config: /home/RangePlace/models/OT.txt
+weights: /home/RangePlace/weights/OT/pretrained_overlap_transformer.pth.tar
+debug: false
+rotate: true
+visualize: false
+log: true

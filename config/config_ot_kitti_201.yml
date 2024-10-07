@@ -1,0 +1,7 @@
+config: /home/RangePlace/config/config_kitti.txt
+model_config: /home/RangePlace/models/OT.txt
+weights: /home/RangePlace/weights/OT/model_ablationFF_OT_20241006_1124_final_kitti_201.pth
+debug: false
+rotate: true
+visualize: false
+log: true

@@ -131,25 +131,20 @@ if __name__ == "__main__":
         df_locations = df_locations.rename(columns={"timestamp": "file"})
 
         db_frames = {
-            "00": range(0, 3000),
-            "01": range(0, 1101),
-            "02": range(0, 4661),
-            "03": range(0, 801),
-            "04": range(0, 271),
-            "05": range(0, 1000),
-            "06": range(0, 600),
-            "07": range(0, 1101),
-            "08": range(0, 4071),
-            "09": range(0, 1591),
-            "10": range(0, 1201),
+            "00": range(0, 20634),
+            "01": range(0, 100),
+            "02": range(0, 2401),
+            "03": range(0, 100),
         }
         query_frames = {
-            "00": range(3200, 4541),
-            "05": range(1200, 2761),
-            "06": range(800, 1101),
+            "01": range(101, 16346),
+            "03": range(101, 2299),
         }
 
         for index, row in df_locations.iterrows():
+            # print(f"当前索引: {index}")  # 输出当前索引
+            # print(f"当前索引: {row}")  # 输出当前索引
+            # print(f"当前索引: {db_frames[folder]}")  # 输出当前索引
             # 整个商业区都在测试集中
             if index in db_frames[folder]:
                 # 使用 pd.concat()

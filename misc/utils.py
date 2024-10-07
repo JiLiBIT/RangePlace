@@ -89,7 +89,7 @@ class TrainingParams:
     """
     Parameters for model training
     """
-    def __init__(self, params_path: str, model_params_path: str, debug: bool = False):
+    def __init__(self, params_path: str, model_params_path: str, resume : str, debug: bool = False):
         """
         Configuration files
         :param path: Training configuration file
@@ -100,6 +100,7 @@ class TrainingParams:
         assert os.path.exists(model_params_path), 'Cannot find model-specific configuration file: {}'.format(model_params_path)
         self.params_path = params_path
         self.model_params_path = model_params_path
+        self.resume = resume
         self.debug = debug
 
         config = configparser.ConfigParser()

@@ -1,6 +1,6 @@
-import numpy as np
 import os
 import cv2
+import numpy as np
 from datasets.base_datasets import PointCloudLoader, RangeImageLoader
 
 
@@ -21,6 +21,7 @@ class PNVPointCloudLoader(PointCloudLoader):
         pc = np.reshape(pc, (pc.shape[0] // 3, 3))
         return pc
 
+
 class PNVRangeImageLoader(RangeImageLoader):
     def set_properties(self):
         # Point clouds are already preprocessed with a ground plane removed
@@ -30,8 +31,8 @@ class PNVRangeImageLoader(RangeImageLoader):
 
     def read_ri(self, file_pathname: str) -> np.ndarray:
         ri = np.array(cv2.imread(file_pathname, cv2.IMREAD_GRAYSCALE))
-        ri = ri.astype('float32')
-        #depth_data_tensor = torch.from_numpy(depth_data).type(torch.FloatTensor)
+        ri = ri.astype("float32")
+        # depth_data_tensor = torch.from_numpy(depth_data).type(torch.FloatTensor)
         ri = np.expand_dims(ri, axis=0)
 
         return ri

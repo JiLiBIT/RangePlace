@@ -1,0 +1,7 @@
+config: /home/RangePlace/config/config_kitti.txt
+model_config: /home/RangePlace/models/rangeplace.txt
+weights: /home/RangePlace/weights/RangePlace/model_ablationFF_RangePlace_20241003_1454_final_kitti.pth
+debug: false
+rotate: true
+visualize: false
+log: true

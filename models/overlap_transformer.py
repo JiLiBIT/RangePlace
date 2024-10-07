@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Developed by Junyi Ma, Xieyuanli Chen, and Jun Zhang
 # This file is covered by the LICENSE file in the root of the project OverlapTransformer:
 # https://github.com/haomo-ai/OverlapTransformer/
@@ -7,16 +6,18 @@
 
 import os
 import sys
+
 p = "/home/liji/HIOT/OverlapTransformer-master/"
 # p = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
 if p not in sys.path:
     sys.path.append(p)
-sys.path.append('../tools/')
+sys.path.append("../tools/")
 import torch
 import torch.nn as nn
 
 from models.netvlad import NetVLADLoupe
 import torch.nn.functional as F
+
 # from tools.read_samples import read_one_need_from_seq
 import yaml
 
@@ -32,36 +33,58 @@ import yaml
         norm_layer: None in our work for better model.
         use_transformer: Whether to use MHSA.
 """
+
+
 class OT(nn.Module):
-    def __init__(self, height=64, width=900, channels=1, norm_layer=None, use_transformer = True):
+    def __init__(
+        self, height=64, width=900, channels=1, norm_layer=None, use_transformer=True
+    ):
         super(OT, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self.use_transformer = use_transformer
 
-        self.conv1 = nn.Conv2d(channels, 16, kernel_size=(5,1), stride=(1,1), bias=False)
+        self.conv1 = nn.Conv2d(
+            channels, 16, kernel_size=(5, 1), stride=(1, 1), bias=False
+        )
         self.bn1 = norm_layer(16)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,1), stride=(2,1), bias=False)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3, 1), stride=(2, 1), bias=False)
         self.bn2 = norm_layer(32)
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=(3,1), stride=(2,1), bias=False)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=(3, 1), stride=(2, 1), bias=False)
         self.bn3 = norm_layer(64)
-        self.conv4 = nn.Conv2d(64, 64, kernel_size=(3,1), stride=(2,1), bias=False) #H6
+        self.conv4 = nn.Conv2d(
+            64, 64, kernel_size=(3, 1), stride=(2, 1), bias=False
+        )  # H6
         self.bn4 = norm_layer(64)
-    
-        self.conv5 = nn.Conv2d(64, 128, kernel_size=(2,1), stride=(2,1), bias=False) #H3
+
+        self.conv5 = nn.Conv2d(
+            64, 128, kernel_size=(2, 1), stride=(2, 1), bias=False
+        )  # H3
         self.bn5 = norm_layer(128)
-        self.conv6 = nn.Conv2d(128, 128, kernel_size=(1,1), stride=(2,1), bias=False) #H2
+        self.conv6 = nn.Conv2d(
+            128, 128, kernel_size=(1, 1), stride=(2, 1), bias=False
+        )  # H2
         self.bn6 = norm_layer(128)
-        self.conv7 = nn.Conv2d(128, 128, kernel_size=(1,1), stride=(2,1), bias=False) #H1
+        self.conv7 = nn.Conv2d(
+            128, 128, kernel_size=(1, 1), stride=(2, 1), bias=False
+        )  # H1
         self.bn7 = norm_layer(128)
 
-        self.conv8 = nn.Conv2d(128, 128, kernel_size=(1,1), stride=(2,1), bias=False) #01
+        self.conv8 = nn.Conv2d(
+            128, 128, kernel_size=(1, 1), stride=(2, 1), bias=False
+        )  # 01
         self.bn8 = norm_layer(128)
-        self.conv9 = nn.Conv2d(128, 128, kernel_size=(1,1), stride=(2,1), bias=False) #02
+        self.conv9 = nn.Conv2d(
+            128, 128, kernel_size=(1, 1), stride=(2, 1), bias=False
+        )  # 02
         self.bn9 = norm_layer(128)
-        self.conv10 = nn.Conv2d(128, 128, kernel_size=(1,1), stride=(2,1), bias=False) #03
+        self.conv10 = nn.Conv2d(
+            128, 128, kernel_size=(1, 1), stride=(2, 1), bias=False
+        )  # 03
         self.bn10 = norm_layer(128)
-        self.conv11 = nn.Conv2d(128, 128, kernel_size=(1,1), stride=(2,1), bias=False) #04
+        self.conv11 = nn.Conv2d(
+            128, 128, kernel_size=(1, 1), stride=(2, 1), bias=False
+        )  # 04
         self.bn11 = norm_layer(128)
         self.relu = nn.ReLU(inplace=True)
 
@@ -69,14 +92,27 @@ class OT(nn.Module):
             MHSA
             num_layers=1 is suggested in our work.
         """
-        encoder_layer = nn.TransformerEncoderLayer(d_model=256, nhead=4, dim_feedforward=1024, activation='relu', batch_first=False,dropout=0.)
-        self.transformer_encoder = torch.nn.TransformerEncoder(encoder_layer, num_layers=1)
-        self.convLast1 = nn.Conv2d(128, 256, kernel_size=(1,1), stride=(1,1), bias=False)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=256,
+            nhead=4,
+            dim_feedforward=1024,
+            activation="relu",
+            batch_first=False,
+            dropout=0.0,
+        )
+        self.transformer_encoder = torch.nn.TransformerEncoder(
+            encoder_layer, num_layers=1
+        )
+        self.convLast1 = nn.Conv2d(
+            128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False
+        )
         self.bnLast1 = norm_layer(256)
-        self.convLast2 = nn.Conv2d(512, 1024, kernel_size=(1,1), stride=(1,1), bias=False)
+        self.convLast2 = nn.Conv2d(
+            512, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False
+        )
         self.bnLast2 = norm_layer(1024)
 
-        self.linear = nn.Linear(128*900, 256)
+        self.linear = nn.Linear(128 * 900, 256)
 
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax()
@@ -85,9 +121,15 @@ class OT(nn.Module):
             NETVLAD
             add_batch_norm=False is needed in our work.
         """
-        self.net_vlad = NetVLADLoupe(feature_size=1024, max_samples=900, cluster_size=64,
-                                     output_dim=256, gating=True, add_batch_norm=False,
-                                     is_training=True)
+        self.net_vlad = NetVLADLoupe(
+            feature_size=1024,
+            max_samples=900,
+            cluster_size=64,
+            output_dim=256,
+            gating=True,
+            add_batch_norm=False,
+            is_training=True,
+        )
 
         """TODO: How about adding some dense layers?"""
         self.linear1 = nn.Linear(1 * 256, 256)
@@ -98,7 +140,7 @@ class OT(nn.Module):
         self.bnl3 = norm_layer(256)
 
     def forward(self, x_l):
-        x_l = F.interpolate(x_l, size=(64,900), mode='bilinear', align_corners=False)
+        x_l = F.interpolate(x_l, size=(64, 900), mode="bilinear", align_corners=False)
         out_l = self.relu(self.conv1(x_l))
         out_l = self.relu(self.conv2(out_l))
         out_l = self.relu(self.conv3(out_l))
@@ -111,19 +153,18 @@ class OT(nn.Module):
         out_l = self.relu(self.conv10(out_l))
         out_l = self.relu(self.conv11(out_l))
 
-
-        out_l_1 = out_l.permute(0,1,3,2)
+        out_l_1 = out_l.permute(0, 1, 3, 2)
         out_l_1 = self.relu(self.convLast1(out_l_1))
 
         """Using transformer needs to decide whether batch_size first"""
         if self.use_transformer:
-            out_l = out_l_1.squeeze(3) #B C L 
-            out_l = out_l.permute(2, 0, 1) #L B C 
-            out_l = self.transformer_encoder(out_l)#L B C
-            out_l = out_l.permute(1, 2, 0)# B C L 
-            out_l = out_l.unsqueeze(3)#B C L 1
-            out_l = torch.cat((out_l_1, out_l), dim=1)# B 2*C L 1
-            out_l = self.relu(self.convLast2(out_l))# B 4*C L 1
+            out_l = out_l_1.squeeze(3)  # B C L
+            out_l = out_l.permute(2, 0, 1)  # L B C
+            out_l = self.transformer_encoder(out_l)  # L B C
+            out_l = out_l.permute(1, 2, 0)  # B C L
+            out_l = out_l.unsqueeze(3)  # B C L 1
+            out_l = torch.cat((out_l_1, out_l), dim=1)  # B 2*C L 1
+            out_l = self.relu(self.convLast2(out_l))  # B 4*C L 1
             out_l = F.normalize(out_l, dim=1)
             out_l = self.net_vlad(out_l)
             out_l = F.normalize(out_l, dim=1)
@@ -134,10 +175,10 @@ class OT(nn.Module):
             out_l = self.net_vlad(out_l)
             out_l = F.normalize(out_l, dim=1)
 
-        return {'global': out_l}
+        return {"global": out_l}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # load config ================================================================
     # config_filename = '../config/config_linux.yml'
     # config = yaml.safe_load(open(config_filename))
@@ -145,9 +186,9 @@ if __name__ == '__main__':
     # ============================================================================
 
     # combined_tensor = read_one_need_from_seq(seqs_root, "000000","00")
-    combined_tensor = torch.randn(4,1,64,900).cuda()
-    
-    feature_extracter=OT(use_transformer=True, channels=1)
+    combined_tensor = torch.randn(4, 1, 64, 900).cuda()
+
+    feature_extracter = OT(use_transformer=True, channels=1)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     feature_extracter.to(device)
     feature_extracter.eval()
@@ -157,4 +198,4 @@ if __name__ == '__main__':
 
     gloabal_descriptor = feature_extracter(combined_tensor)
     print("size of gloabal descriptor: \n")
-    print(gloabal_descriptor['global'].size())
+    print(gloabal_descriptor["global"].size())
